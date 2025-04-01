@@ -1,0 +1,17 @@
+// views/layout.pug
+doctype html
+html
+  head
+    title Board Games Website
+    link(rel='stylesheet', href='/styles.css')
+  body
+    nav
+      ul
+        li: a(href='/') Home/Search
+        li: a(href='/favorites') Favorites
+        li: a(href='/account') Account
+        if user
+          li: a(href='/account/logout') Logout
+        else
+          li: a(href='/account/login') Login
+    block content

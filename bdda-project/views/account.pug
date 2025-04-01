@@ -1,0 +1,21 @@
+// views/account.pug
+extends layout
+
+block content
+  h1 Account Information
+  p First Name: #{user.First_Name || ''}
+  p Last Name: #{user.Last_Name || ''}
+  p Email: #{user.email || ''}
+
+  h2 Update Account Information
+  form(action='/account/update', method='post')
+    label(for='firstName') First Name:
+    input(type='text', name='firstName', value=user.First_Name, required)
+    br
+    label(for='lastName') Last Name:
+    input(type='text', name='lastName', value=user.Last_Name, required)
+    br
+    label(for='email') Email:
+    input(type='email', name='email', value=user.email, required)
+    br
+    button(type='submit') Update

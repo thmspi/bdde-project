@@ -1,0 +1,21 @@
+// views/signup.pug
+extends layout
+
+block content
+  h1 Signup
+  form(action='/account/signup', method='post')
+    label(for='firstName') First Name:
+    input(type='text', name='firstName', required)
+    br
+    label(for='lastName') Last Name:
+    input(type='text', name='lastName', required)
+    br
+    label(for='email') Email:
+    input(type='email', name='email', required)
+    br
+    label(for='password') Password:
+    input(type='password', name='password', required)
+    br
+    button(type='submit') Signup
+  p Already have an account? 
+    a(href='/account/login') Login

@@ -1,0 +1,31 @@
+// views/game_edit.pug
+extends layout
+
+block content
+  h1 Edit Game: #{game.Name_game}
+  form(action=`/games/${game.Id_game}/edit`, method='post')
+    label(for='Name_game') Name:
+    input(type='text', name='Name_game', value=game.Name_game, required)
+    br
+    label(for='Description') Description:
+    input(type='text', name='Description', value=game.Description, required)
+    br
+    label(for='minplayer') Minimum Players:
+    input(type='number', name='minplayer', value=game.minplayer, required)
+    br
+    label(for='maxplayer') Maximum Players:
+    input(type='number', name='maxplayer', value=game.maxplayer, required)
+    br
+    label(for='playingtime') Playing Time:
+    input(type='number', name='playingtime', value=game.playingtime, required)
+    br
+    label(for='minplaytime') Minimum Play Time:
+    input(type='number', name='minplaytime', value=game.minplaytime, required)
+    br
+    label(for='maxplaytime') Maximum Play Time:
+    input(type='number', name='maxplaytime', value=game.maxplaytime, required)
+    br
+    label(for='Year_published') Year Published:
+    input(type='number', name='Year_published', value=game.Year_published, required)
+    br
+    button(type='submit') Save Changes

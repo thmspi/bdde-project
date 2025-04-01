@@ -1,0 +1,11 @@
+// views/favorites.pug
+extends layout
+
+block content
+  h1 Your Favorite Board Games
+  if games && games.length
+    ul
+      each game in games
+        li: a(href=`/games/${game.Id_game}`) #{game.Name_game}
+  else
+    p You have no favorite board games yet.

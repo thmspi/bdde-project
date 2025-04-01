@@ -1,0 +1,23 @@
+// views/index.pug
+extends layout
+
+block content
+  h1 Board Games Home
+
+  form(action='/search', method='post')
+    input(type='text', name='search', placeholder='Search for board games...')
+    button(type='submit') Search
+
+  if trendingGames && trendingGames.length
+    h2 Trending Board Games
+    ul
+      each game in trendingGames
+        li
+          a(href=`/games/${game.Id_game}`) #{game.Name_game}
+
+  if searchResults
+    h2 Search Results
+    ul
+      each game in searchResults
+        li
+          a(href=`/games/${game.Id_game}`) #{game.Name_game}

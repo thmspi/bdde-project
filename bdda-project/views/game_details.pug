@@ -1,0 +1,35 @@
+// views/game_details.pug
+extends layout
+
+block content
+  h1 #{game.Name_game}
+  p Description: #{game.Description}
+  p Players: #{game.minplayer} - #{game.maxplayer}
+  p Playing Time: #{game.playingtime} minutes
+  p Published: #{game.Year_published}
+
+  if user
+    form(action=`/games/${game.Id_game}/favorite`, method='post')
+      button(type='submit') Add to Favorites
+
+    h3 Submit a Grade and Comment
+    form(action=`/games/${game.Id_game}/comment`, method='post')
+      label(for='note') Grade:
+      input(type='number', name='note', required)
+      br
+      label(for='avis') Comment:
+      input(type='text', name='avis', required)
+      br
+      button(type='submit') Submit
+  else
+    p You must be logged in to add comments or favorites.
+
+  if user && user.role === 'admin'
+    a(href=`/games/${game.Id_game}/edit`) Edit Game
+
+  if comments && comments.length
+    h3 Comments
+    each comment in comments
+      div.comment
+        p #{comment.First_Name} #{comment.Last_Name} said: #{comment.avis} (Grade: #{comment.note})
+        p Date: #{comment.date_note}
