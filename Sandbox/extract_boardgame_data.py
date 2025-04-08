@@ -1,69 +1,70 @@
+#!/usr/bin/env python3
+"""
+This script reads the first 1,000 non-header rows of 'details.csv'
+and generates an SQL file (insert_games.sql) containing multiple
+INSERT statements (each with up to 100 rows) for the Game table.
+It uses the CSV’s game name and description and randomly assigns
+the other values.
+"""
 
-import pandas as pd
-import ast
+import csv
+import random
 
-# Load data
-ratings = pd.read_csv("ratings.csv")
-details = pd.read_csv("details.csv")
+def generate_game_inserts(input_csv="details.csv", output_sql="insert_games.sql", num_rows=1000, batch_size=100):
+    batches = []
+    current_batch = []
+    count = 0
 
-# Merge on 'id'
-merged = pd.merge(details, ratings, on='id')
+    with open(input_csv, "r", encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile)
+        header = next(reader)  # Skip header row
+        
+        for row in reader:
+            if count >= num_rows:
+                break
 
-# Clean up helper function for list-like string fields
-def parse_list_field(field):
-    try:
-        parsed = ast.literal_eval(field)
-        if isinstance(parsed, list):
-            return [str(item).strip() for item in parsed]
-        else:
-            return []
-    except:
-        return []
+            # Assume the first column is the game name and the second column is the description.
+            name = row[2].strip().replace("'", "''")
+            description = row[3].strip().replace("'", "''")
+            
+            # Generate random values for additional fields.
+            minplayer = random.randint(2, 4)
+            maxplayer = random.randint(minplayer, minplayer + 3)
+            playingtime = random.randint(30, 120)
+            minplaytime = playingtime - random.randint(5, 10)
+            maxplaytime = playingtime + random.randint(5, 15)
+            average_note = round(random.uniform(5.0, 9.0), 2)
+            year_published = random.randint(1950, 2020)
+            rank_game = random.randint(1, 20)
+            id_publisher = random.randint(1, 10)  # Random publisher ID (assumes 10 publishers)
+            id_category = random.randint(1, 15)   # Random category ID (assumes 15 categories)
 
-# -------------------- Category Table --------------------
-# Extract unique categories
-details['boardgamefamily'] = details['boardgamefamily'].fillna("[]")
-category_set = set()
-for item in details['boardgamefamily']:
-    category_set.update(parse_list_field(item))
-category_df = pd.DataFrame(sorted(category_set), columns=["Name_category"])
+            sql_row = (
+                f"('{name}', '{description}', {minplayer}, {maxplayer}, {playingtime}, "
+                f"{minplaytime}, {maxplaytime}, {average_note}, {year_published}, {rank_game}, "
+                f"{id_publisher}, {id_category})"
+            )
+            current_batch.append(sql_row)
+            count += 1
 
-# -------------------- Publisher Table --------------------
-details['boardgamepublisher'] = details['boardgamepublisher'].fillna("[]")
-publisher_set = set()
-for item in details['boardgamepublisher']:
-    publisher_set.update(parse_list_field(item))
-publisher_df = pd.DataFrame(sorted(publisher_set), columns=["boardgamefamily_"])
+            # Once we have reached a batch, save it and start a new one.
+            if count % batch_size == 0:
+                batches.append(current_batch)
+                current_batch = []
+        
+        # Append any remaining rows as the last batch.
+        if current_batch:
+            batches.append(current_batch)
 
-# -------------------- Game Table --------------------
-# Create mapping from names to IDs
-publisher_df['id_publisher'] = publisher_df.index + 1
-category_df['Id_category'] = category_df.index + 1
+    # Write all the batches to the output SQL file.
+    with open(output_sql, "w", encoding="utf-8") as sqlfile:
+        sqlfile.write("-- Insert sample rows into the Game table in batches\n\n")
+        for batch in batches:
+            sqlfile.write("INSERT INTO Game (Name_game, Description, minplayer, maxplayer, playingtime, minplaytime, maxplaytime, Average_Note, Year_published, rank_game, id_publisher, Id_category) VALUES\n")
+            sqlfile.write(",\n".join(batch))
+            sqlfile.write(";\n\n")
+    
+    print(f"Generated '{output_sql}' with {count} rows in {len(batches)} batches.")
 
-# Functions to map game to first publisher/category ID
-def get_first_id(value, mapping):
-    items = parse_list_field(value)
-    return mapping.get(items[0]) if items else None
-
-publisher_map = dict(zip(publisher_df['boardgamefamily_'], publisher_df['id_publisher']))
-category_map = dict(zip(category_df['Name_category'], category_df['Id_category']))
-
-merged['id_publisher'] = details['boardgamepublisher'].map(lambda x: get_first_id(x, publisher_map))
-merged['Id_category'] = details['boardgamefamily'].map(lambda x: get_first_id(x, category_map))
-
-game_df = merged[[
-    'primary', 'description', 'minplayers', 'maxplayers', 'playingtime',
-    'minplaytime', 'maxplaytime', 'average', 'yearpublished', 'rank',
-    'id_publisher', 'Id_category'
-]].copy()
-
-game_df.columns = [
-    'Name_game', 'Description', 'minplayer', 'maxplayer', 'playingtime',
-    'minplaytime', 'maxplaytime', 'Average_Note', 'Year_published', 'rank_game',
-    'id_publisher', 'Id_category'
-]
-
-# Save to CSV
-category_df.to_csv("Category.csv", index=False)
-publisher_df.to_csv("Boardgamepublisher.csv", index=False)
-game_df.to_csv("Game.csv", index=False)
+if __name__ == "__main__":
+    generate_game_inserts()
