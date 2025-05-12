@@ -44,8 +44,22 @@ router.get('/logout', (req, res) => {
 
 // Account details page with option to update information
 router.get('/', (req, res) => {
-  if (!req.isAuthenticated()) return res.redirect('/account/login');
-  res.render('account', { user: req.user });
+   if (!req.user) return res.redirect('/account/login'); // sécurité
+
+   const sql = 'SELECT * FROM Users WHERE id_user = ?';
+   req.db.query(sql, [req.user.id], (err, results) => {
+      if (err) {
+         console.error(err);
+         return res.sendStatus(500);
+      }
+
+      if (results.length === 0) {
+         return res.redirect('/account/login'); // utilisateur inexistant
+      }
+
+      const user = results[0];
+      res.render('account', { user });
+   });
 });
 
 router.post('/update', (req, res) => {
