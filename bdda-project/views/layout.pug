@@ -1,17 +1,31 @@
-// views/layout.pug
 doctype html
 html
   head
     title Board Games Website
-    link(rel='stylesheet', href='/styles.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src="/js/navbar.js")
   body
-    nav
-      ul
-        li: a(href='/') Home/Search
-        li: a(href='/favorites') Favorites
-        li: a(href='/account') Account
-        if user
-          li: a(href='/account/logout') Logout
-        else
-          li: a(href='/account/login') Login
+    .nav
+      input(type="checkbox" id="toggle")
+      .icon.appicon
+      .changable
+        .links
+          .link 
+            a(href='/') Home
+          .link 
+            a(href='/favorites') Favorites
+          .link 
+            a(href='/account') Account
+          .link 
+            if user
+              a(href='/account/logout') Logout
+            else
+              a(href='/account/login') Login
+          label.icon.searchicon(for="toggle")
+        .search
+          label.icon.searchicon(for="toggle")
+          form(action='/search', method='post')
+            input(type='text', name='search', placeholder='Search for board games...')
+            button(type='submit' style='display:none') Search
+      label.icon.searchicon1(for="toggle")
     block content

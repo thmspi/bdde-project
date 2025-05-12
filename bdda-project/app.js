@@ -7,6 +7,7 @@ const mysql = require('mysql2');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
+
 const app = express();
 
 // Set up view engine
@@ -16,6 +17,7 @@ app.set('views', path.join(__dirname, 'views'));
 // Static files and middleware
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static('public'));
 
 // Session and Passport config
 app.use(session({
@@ -48,8 +50,9 @@ passport.deserializeUser((id, done) => {
 // Database connection (adjust with your own credentials)
 const db = mysql.createConnection({
   host: 'localhost',
-  //user: 'your_db_user',
-  database: 'BDDA-project'
+  user: 'root',
+  database: 'BDDA-project',
+  password: ''
 });
 db.connect(err => {
   if (err) console.error('Database connection error:', err);

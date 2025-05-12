@@ -1,12 +1,7 @@
-// views/index.pug
 extends layout
 
 block content
   h1 Board Games Home
-
-  form(action='/search', method='post')
-    input(type='text', name='search', placeholder='Search for board games...')
-    button(type='submit') Search
 
   if trendingGames && trendingGames.length
     h2 Trending Board Games
