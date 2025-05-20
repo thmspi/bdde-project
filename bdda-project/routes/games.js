@@ -15,31 +15,45 @@ router.get('/:id', (req, res) => {
       FROM Comment c JOIN Users u ON c.id_user = u.id_user 
       WHERE c.Id_game = ?
     `;
-      req.db.query(commentSQL, [gameId], (err, comments) => {
-         if (err) comments = [];
-         res.render('game_details', { game, comments, user: req.user });
+    req.db.query(commentSQL, [gameId], (err, comments) => {
+      if (err) comments = [];
+      // Use stored functions GetFavoriteCount and IsRecentGame
+      const favCountSQL = 'SELECT GetFavoriteCount(?) AS favCount';
+      const isRecentSQL = 'SELECT IsRecentGame(?) AS isRecent';
+
+      req.db.query(favCountSQL, [gameId], (err, favResults) => {
+        const favoriteCount = err ? 0 : favResults[0].favCount;
+
+        req.db.query(isRecentSQL, [gameId], (err, recentResults) => {
+          const isRecent = err ? false : recentResults[0].isRecent;
+
+          res.render('game_details', { game, comments, user: req.user, favoriteCount, isRecent });
+        });
       });
-   });
+    });
+  });
 });
 
+
 // Submit a comment and grade
+// Use Stored Procedure AddComment
 router.post('/:id/comment', (req, res) => {
-   if (!req.isAuthenticated()) return res.redirect('/account/login');
-   const gameId = req.params.id;
-   const { note, avis } = req.body;
-   if (!note || !avis) return res.status(400).send('Both grade and comment are required');
-   const userId = req.user.id;
-   const sql = `
-    INSERT INTO Comment (Id_game, id_user, note, avis, date_note) 
-    VALUES (?, ?, ?, ?, CURDATE())
-  `;
-   req.db.query(sql, [gameId, userId, note, avis], (err) => {
-      if (err) {
-         console.error(err);
-         return res.sendStatus(500);
-      }
-      res.redirect(`/games/${gameId}`);
-   });
+  if (!req.isAuthenticated()) return res.redirect('/account/login');
+
+  const gameId = req.params.id;
+  const { note, avis } = req.body;
+  if (!note || !avis) return res.status(400).send('Both grade and comment are required');
+
+  const userId = req.user.id;
+  const callSP = 'CALL AddComment(?, ?, ?, ?, CURDATE())';
+
+  req.db.query(callSP, [gameId, userId, note, avis], err => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Error adding comment.');
+    }
+    res.redirect(`/games/${gameId}`);
+  });
 });
 
 // Add game to favorites
@@ -61,7 +75,11 @@ router.post('/:id/favorite', (req, res) => {
          const insertSql = 'INSERT INTO Favoris (Id_game, id_user) VALUES (?, ?)';
          req.db.query(insertSql, [gameId, userId], (err) => {
             if (err) {
-               console.error(err);
+               if (err.sqlState === '45000') {
+        // Custom SQLSTATE for your trigger
+        return res.status(400).send('Game already in favorites.');
+      }
+      console.error(err);
                return res.sendStatus(500);
             }
             return res.redirect(`/games/${gameId}`);

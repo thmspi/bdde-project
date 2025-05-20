@@ -4,15 +4,15 @@ const router = express.Router();
 
 // Home/Search Page
 router.get('/', (req, res) => {
-   // Get a list of trending board games (example: using rank_game)
-   const trendingSQL = 'SELECT * FROM Game ORDER BY rank_game LIMIT 5';
-   req.db.query(trendingSQL, (err, trendingGames) => {
-      if (err) {
-         console.error(err);
-         trendingGames = [];
-      }
-      res.render('index', { trendingGames, user: req.user });
-   });
+  // Get a list of trending board games (example: using rank_game)
+  const trendingSQL = 'SELECT * FROM TrendingGames'; // Use TrendingGames view
+  req.db.query(trendingSQL, (err, trendingGames) => {
+    if (err) {
+      console.error(err);
+      trendingGames = [];
+    }
+    res.render('index', { trendingGames, user: req.user });
+  });
 });
 
 // Handle search form submission

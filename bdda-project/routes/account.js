@@ -67,24 +67,33 @@ router.get('/logout', (req, res, next) => {
 router.get('/', (req, res) => {
    if (!req.user) return res.redirect('/account/login'); // sécurité
 
-   const sql = 'SELECT * FROM Users WHERE id_user = ?';
-   req.db.query(sql, [req.user.id], (err, results) => {
+   // Use GetUserCommentCount stored function to get the comment count
+   const sql = `
+      SELECT *, GetUserCommentCount(?) AS commentCount
+      FROM Users
+      WHERE id_user = ?
+   `;
+
+   req.db.query(sql, [req.user.id, req.user.id], (err, results) => {
       if (err) {
          console.error(err);
          return res.sendStatus(500);
       }
 
       if (results.length === 0) {
-         return res.redirect('/account/login'); // utilisateur inexistant
+         return res.redirect('/account/login');  // utilisateur inexistant
       }
 
       const user = results[0];
       res.render('account', {
-         user: user, // Données de la BDD
-         authUser: req.user, // Données de session (role, id, etc.)
+         user: user,           // Données de la BDD incluant commentCount maintenant
+         authUser: req.user,   // Données de session (role, id, etc.)
       });
    });
 });
+
+
+
 
 router.post('/update', (req, res) => {
    if (!req.isAuthenticated()) return res.redirect('/account/login');
@@ -99,5 +108,7 @@ router.post('/update', (req, res) => {
       res.redirect('/account');
    });
 });
+
+
 
 module.exports = router;
