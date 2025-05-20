@@ -6,6 +6,9 @@ block content
   p Players: #{game.minplayer} - #{game.maxplayer}
   p Playing Time: #{game.playingtime} minutes
   p Published: #{game.Year_published}
+  p Total Favorites: #{favoriteCount}
+  if isRecent
+    p This is a recent game!
 
   if user
     form(action=`/games/${game.Id_game}/favorite`, method='post')

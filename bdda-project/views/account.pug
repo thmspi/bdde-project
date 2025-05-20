@@ -7,7 +7,7 @@ block content
   p Email: #{user.email || ''}
   p Role: #{authUser.role || ''}
   p Id: #{user.id_user || ''}
-
+  p Total Comments Posted: #{user.commentCount}
 
   h2 Update Account Information
   form(action='/account/update', method='post')
