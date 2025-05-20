@@ -5,6 +5,9 @@ block content
   p First Name: #{user.First_Name || ''}
   p Last Name: #{user.Last_Name || ''}
   p Email: #{user.email || ''}
+  p Role: #{authUser.role || ''}
+  p Id: #{user.id_user || ''}
+
 
   h2 Update Account Information
   form(action='/account/update', method='post')
