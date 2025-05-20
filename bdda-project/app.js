@@ -33,10 +33,19 @@ app.use(passport.session());
 // In production, validate user credentials against your database.
 passport.use(
    new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
-      // Example: query your Users table here
-      // For now, accept any login and assign role "user" (or "admin" as needed)
-      const user = { id: 1, email, role: 'user' };
-      return done(null, user);
+      const sql = 'SELECT * FROM Users WHERE email = ?';
+      db.query(sql, [email], (err, results) => {
+         if (err) return done(err);
+         if (results.length === 0) return done(null, false, { message: 'Utilisateur introuvable' });
+
+         const user = results[0];
+
+         return done(null, {
+            id: user.id_user,
+            email: user.email,
+            role: user.role || 'user',
+         });
+      });
    })
 );
 
@@ -44,8 +53,18 @@ passport.serializeUser((user, done) => {
    done(null, user.id);
 });
 passport.deserializeUser((id, done) => {
-   // Look up user by id from DB
-   done(null, { id, email: 'user@example.com', role: 'user' });
+   const sql = 'SELECT * FROM Users WHERE id_user = ?';
+   db.query(sql, [id], (err, results) => {
+      if (err) return done(err);
+      if (results.length === 0) return done(null, false);
+
+      const user = results[0];
+      done(null, {
+         id: user.id_user,
+         email: user.email,
+         role: user.role || 'user',
+      });
+   });
 });
 
 // Database connection (adjust with your own credentials)
@@ -53,7 +72,7 @@ const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
    database: 'BDDA-project',
-   password: '',
+   password: '_Th40!Do61',
 });
 db.connect((err) => {
    if (err) console.error('Database connection error:', err);

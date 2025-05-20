@@ -34,7 +34,6 @@ router.post('/signup', (req, res) => {
             return res.sendStatus(500);
          }
          req.login({ id: result.insertId, email, role: 'admin' }, (err) => {
-            console.log(id);
             if (err) return res.sendStatus(500);
             res.redirect('/');
          });
@@ -49,15 +48,19 @@ router.post('/signup', (req, res) => {
          req.login({ id: result.insertId, email, role: 'user' }, (err) => {
             if (err) return res.sendStatus(500);
             res.redirect('/');
+            req.user.id = id;
          });
       });
    }
 });
 
 // Logout route
-router.get('/logout', (req, res) => {
-   req.logout();
-   res.redirect('/');
+// Logout route – version compatible Passport >= 0.6
+router.get('/logout', (req, res, next) => {
+   req.logout((err) => {
+      if (err) return next(err);
+      res.redirect('/account/login');
+   });
 });
 
 // Account details page with option to update information

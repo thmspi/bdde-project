@@ -11,7 +11,7 @@ block content
           a(href=`/games/${game.Id_game}`) #{game.Name_game}
 
   if searchResults
-    h2 Search Results
+    h2 Search Results : #{searchResults.length} results
     ul
       each game in searchResults
         li

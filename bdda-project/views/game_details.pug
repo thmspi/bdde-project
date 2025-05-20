@@ -14,7 +14,7 @@ block content
     h3 Submit a Grade and Comment
     form(action=`/games/${game.Id_game}/comment`, method='post')
       label(for='note') Grade:
-      input(type='number', name='note', required)
+      input(type='number', name='note', required min="0" max="10")
       br
       label(for='avis') Comment:
       input(type='text', name='avis', required)
