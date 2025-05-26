@@ -9,6 +9,13 @@ block content
   p Id: #{user.id_user || ''}
   p Total Comments Posted: #{user.commentCount}
 
+  if stats
+    h2 Admin Stats
+    p Total Games: #{stats.TotalGames}
+    p Total Users: #{stats.TotalUsers}
+    p Total Comments: #{stats.TotalComments}
+    p Total Favorites: #{stats.TotalFavorites}
+
   h2 Update Account Information
   form(action='/account/update', method='post')
     label(for='firstName') First Name:

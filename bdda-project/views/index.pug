@@ -9,6 +9,22 @@ block content
       each game in trendingGames
         li
           a(href=`/games/${game.Id_game}`) #{game.Name_game}
+  
+  if favoriteGames && favoriteGames.length
+    h2 Most Favorited Games
+    table
+      thead
+        tr
+          th Rank
+          th Game
+          th Favorites
+      tbody
+        each game in favoriteGames
+          tr
+            td #{game.RankPosition}
+            td 
+              a(href=`/games/${game.Id_game}`) #{game.Name_game}
+            td #{game.FavoriteCount}
 
   if searchResults
     h2 Search Results : #{searchResults.length} results

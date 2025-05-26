@@ -22,36 +22,25 @@ router.post(
    })
 );
 
-// Process signup (this example omits password hashing for brevity)
 router.post('/signup', (req, res) => {
    const { firstName, lastName, email, password } = req.body;
-   if (firstName.substr(0, 5) == 'admin') {
-      /* Si le gars est un admin */
-      const sql = 'INSERT INTO Users (First_Name, Last_Name, email) VALUES (?, ?, ?)';
-      req.db.query(sql, [firstName, lastName, email], (err, result) => {
-         if (err) {
-            console.error(err);
-            return res.sendStatus(500);
-         }
-         req.login({ id: result.insertId, email, role: 'admin' }, (err) => {
-            if (err) return res.sendStatus(500);
-            res.redirect('/');
-         });
+   const sql = 'INSERT INTO Users (First_Name, Last_Name, email) VALUES (?, ?, ?)';
+   req.db.query(sql, [firstName, lastName, email], (err, result) => {
+      if (err) {
+         console.error(err);
+         return res.sendStatus(500);
+      }
+
+      // Assign role based on firstName
+      const role = (firstName.toLowerCase() === 'admin') ? 'admin' : 'user';
+
+      req.login({ id: result.insertId, email, role }, (err) => {
+         if (err) return res.sendStatus(500);
+         res.redirect('/');
       });
-   } else {
-      const sql = 'INSERT INTO Users (First_Name, Last_Name, email) VALUES (?, ?, ?)';
-      req.db.query(sql, [firstName, lastName, email], (err, result) => {
-         if (err) {
-            console.error(err);
-            return res.sendStatus(500);
-         }
-         req.login({ id: result.insertId, email, role: 'user' }, (err) => {
-            if (err) return res.sendStatus(500);
-            res.redirect('/');
-         });
-      });
-   }
+   });
 });
+
 
 // Logout route – version compatible Passport >= 0.6
 router.get('/logout', (req, res, next) => {
@@ -66,29 +55,50 @@ router.get('/', (req, res) => {
    if (!req.user) return res.redirect('/account/login'); // sécurité
 
    // Use GetUserCommentCount stored function to get the comment count
-   const sql = `
+   const userQuery = `
       SELECT *, GetUserCommentCount(?) AS commentCount
       FROM Users
       WHERE id_user = ?
    `;
 
-   req.db.query(sql, [req.user.id, req.user.id], (err, results) => {
+   req.db.query(userQuery, [req.user.id, req.user.id], (err, results) => {
       if (err) {
          console.error(err);
          return res.sendStatus(500);
       }
 
       if (results.length === 0) {
-         return res.redirect('/account/login');  // utilisateur inexistant
+         return res.redirect('/account/login');
       }
 
       const user = results[0];
-      res.render('account', {
-         user: user,           // Données de la BDD incluant commentCount maintenant
-         authUser: req.user,   // Données de session (role, id, etc.)
-      });
+
+      // If user is admin, fetch AdminStats view
+      if (req.user.role === 'admin') {
+         const statsQuery = 'SELECT * FROM AdminStats';
+         req.db.query(statsQuery, (err, statsResults) => {
+            if (err) {
+               console.error(err);
+               return res.sendStatus(500);
+            }
+
+            const stats = statsResults[0];
+            res.render('account', {
+               user: user,
+               authUser: req.user,
+               stats: stats
+            });
+         });
+      } else {
+         res.render('account', {
+            user: user,
+            authUser: req.user,
+            stats: null
+         });
+      }
    });
 });
+
 
 router.post('/update', (req, res) => {
    if (!req.isAuthenticated()) return res.redirect('/account/login');

@@ -5,6 +5,10 @@ block content
   if games && games.length
     ul
       each game in games
-        li: a(href=`/games/${game.Id_game}`) #{game.Name_game}
+        li
+          a(href=`/games/${game.Id_game}`) #{game.Name_game}
+          //- Formulaire suppression favori (méthode POST)
+          form(action=`/favorites/delete/${game.Id_game}`, method='post', style='display:inline')
+            button(type='submit') Supprimer
   else
     p You have no favorite board games yet.

@@ -80,7 +80,7 @@ const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
    database: 'BDDA-project',
-   password: '_Th40!Do61',
+   password: '',
 });
 db.connect((err) => {
    if (err) console.error('Database connection error:', err);
@@ -117,6 +117,22 @@ app.get('/favorites', (req, res) => {
          return res.sendStatus(500);
       }
       res.render('favorites', { games: results, user: req.user });
+   });
+});
+
+app.post('/favorites/delete/:id', (req, res) => {
+   if (!req.isAuthenticated()) return res.redirect('/account/login');
+
+   const gameId = req.params.id;
+   const userId = req.user.id;
+
+   const sql = 'DELETE FROM Favoris WHERE Id_game = ? AND id_user = ?';
+   req.db.query(sql, [gameId, userId], (err, result) => {
+      if (err) {
+         console.error(err);
+         return res.status(500).send('Erreur lors de la suppression du favori');
+      }
+      res.redirect('/favorites');
    });
 });
 
