@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le : mar. 08 avr. 2025 à 15:52
+-- Généré le : lun. 26 mai 2025 à 22:04
 -- Version du serveur : 10.4.28-MariaDB
 -- Version de PHP : 8.0.28
 
@@ -16,8 +16,6 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
-
-use `BDDA-project`;	
 
 --
 -- Base de données : `BDDA-project`
@@ -96,6 +94,38 @@ CREATE TABLE `Comment` (
   `date_note` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Déchargement des données de la table `Comment`
+--
+
+INSERT INTO `Comment` (`Id_game`, `id_user`, `note`, `avis`, `date_note`) VALUES
+(961, 3, 10, 'wowo', '2025-05-26');
+
+--
+-- Déclencheurs `Comment`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_update_average_note` AFTER INSERT ON `Comment` FOR EACH ROW BEGIN
+  UPDATE Game
+  SET Average_Note = (
+    SELECT ROUND(AVG(note), 2)
+    FROM Comment
+    WHERE Id_game = NEW.Id_game
+  )
+  WHERE Id_game = NEW.Id_game;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `trg_validate_rating_range` BEFORE INSERT ON `Comment` FOR EACH ROW BEGIN
+  IF NEW.note < 1 OR NEW.note > 10 THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Rating (note) must be between 1 and 10.';
+  END IF;
+END
+$$
+DELIMITER ;
+
 -- --------------------------------------------------------
 
 --
@@ -106,6 +136,29 @@ CREATE TABLE `Favoris` (
   `Id_game` int(11) NOT NULL,
   `id_user` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `Favoris`
+--
+
+INSERT INTO `Favoris` (`Id_game`, `id_user`) VALUES
+(961, 3);
+
+--
+-- Déclencheurs `Favoris`
+--
+DELIMITER $$
+CREATE TRIGGER `trg_prevent_duplicate_favorite` BEFORE INSERT ON `Favoris` FOR EACH ROW BEGIN
+  IF EXISTS (
+    SELECT 1 FROM Favoris
+    WHERE Id_game = NEW.Id_game AND id_user = NEW.id_user
+  ) THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'This favorite already exists.';
+  END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -1022,7 +1075,7 @@ INSERT INTO `Game` (`Id_game`, `Name_game`, `Description`, `minplayer`, `maxplay
 (959, 'Mission: Red Planet', 'The year is 1888, and Steampunk technology has advanced at a prodigious rate! Probes have been sent to Mars, and soon astronauts will be manning rockets in order to mine the planet for newly discovered resources. The first is a brand new element, Celerium, that could prove to be a combustible energy source the likes man has never seen. The second is Sylvanite, an incredibly dense material unlike anything found on earth. In addition to these resources, glaciers have been discovered on the planet. Whoever controls these icy masses could work to create a livable atmosphere on Mars&#10;&#10;In Mission: Red Planet, players work as mining companies compete to send astronauts to Mars in order to colonize and mine for recently discovered materials. Over the course of 10 rounds, players play one of their special agents every round to help fill the rockets heading to Mars with their own astronauts while simultaneously working to prevent their opponents from doing the same. Once landed, these astronauts must gather to control specific regions of the planet, each yielding one of the three resources: Celerium, Sylvanite, or Ice. After rounds 5 and 8, players gain score tokens for every region where they control the majority of the astronauts. At the end of the game, players score one final time, adding any bonuses received from Discovery Cards and Bonus Cards. The player with the most score tokens at the end controls Mars, and all the riches it can bring!&#10;&#10;From Bruno Faidutti\'s website:&#10;&#10;This one, designed with Bruno Cathala, started with the theme. We wanted to make a game about colonizing Mars, with shuttles leaving the blue planet towards the red one. The theme is strong, and well caught in the steampunk graphic style decided by Asmod&#195;&#169;e. In Mission: Red Planet, each player plays a colonial power which sends astronauts, in space shuttles, to occupy the most promising zones on the planet. For scholars, the systems merge a majority game, &agrave; la El Grande or San Marco, with a character/action card system, somewhere between Citadels and Hoity Toity/Adel Verpflichtet. Nothing really new here, but there was much work on it and we\'re really proud of the result.&#10;&#10;', 3, 4, 110, 101, 123, 8.59, 1990, 16, 10, 14),
 (960, 'Tragedy Looper', 'Tragedy Looper is a scenario-based deduction game for two to four players: one mastermind and one to three protagonists. The game consists of four location boards and a number of character cards. Each scenario features a number of characters, hidden roles for these characters (serial killer, conspiracy theorist, friend), and some pre-set tragedies (murder, suicide).&#10;&#10;Each &quot;day&quot; (turn), players and the mastermind play three face-down cards onto the characters, then reveal them to move the characters around or affect their paranoia or goodwill stats. At the end of each day (turn), if the scenario has a tragedy set for that day, it happens if the conditions are met, i.e., certain characters have certain stats or are in a certain location together (or not together) with others. As tragedies happen, players loop back in time, restarting the scenario from the beginning and trying to deduce who the culprit was and why the tragedy occurred.&#10;&#10;The players win if they manage to maintain status quo &mdash; that is, if no tragedies occur to the key individuals &mdash; for a set number of days, within a set number of loops. If not, the mastermind wins.&#10;&#10;Tragedy Looper was originally released in Japan as &#230;&#131;&#168;&#229;&#138;&#135;RoopeR in 2011; the first english version of the game was released in 2014.&#10;&#10;', 3, 5, 105, 95, 118, 8.14, 1977, 5, 9, 14);
 INSERT INTO `Game` (`Id_game`, `Name_game`, `Description`, `minplayer`, `maxplayer`, `playingtime`, `minplaytime`, `maxplaytime`, `Average_Note`, `Year_published`, `rank_game`, `id_publisher`, `Id_category`) VALUES
-(961, 'Legacy: The Testament of Duke de Crecy', 'It is 1729 in pre-revolution France, a time when the aristocracy has all the power and the means to rule the country. As a wealthy, well-educated aristocrat, you have travelled the world and had the fortune to enjoy your life to the fullest &ndash; but you see that history is about to change course and you know that in order to stay strong, your family must prepare well. You need to find new allies. You must absorb smaller families and use their potency to strengthen your kin. You have to arrange wise marriages, nurture strong connections at court, obtain titles, build mansions, and find the right spouses for your daughters and sons...&#10;&#10;Legacy: The Testament of Duke de Crecy enables you to build a powerful dynasty in 18th century France as you step into the shoes of a French noble and compete for lasting honor. Over three generations, you &ndash; a resourceful patriarch or matriarch &ndash; will attempt to create a lasting legacy by establishing a house with ties to many different wealthy and powerful families from France and abroad (Spain, Italy, Russia and other countries).&#10;&#10;This card game offers endless possibilities. Each time you build a family, you write a unique story, bringing to life the diverse relationships between parents and their children, between cousins, uncles, aunts, nephews and nieces. Whether you are looking for the best husband for your only daughter or a suitable wife for one of your two sons, whether you are looking to add new blood to your family by marrying into foreign nobility &ndash; you will be working to make your family rise in status through prestige and wealth, new skills and abilities.&#10;&#10;In Legacy: The Testament of Duke de Crecy &ndash; known previously as Nobles of Paris and winner of Ducosim Spelontwerp in 2009 &ndash; you will find 75 spouse cards with unique traits, more than twenty secret missions, nine titles, and nine &quot;contribution to the family&quot; cards. This all culminates in a highly thematic card game that will satisfy players who enjoy exploring many different paths to victory.&#10;&#10;&#10;Legacy is a worker placement game in which you take actions to improve the standing and/or wealth of your family. You will expand your family, creating an ever-growing tableau, the family tree. You will need to balance the three \'currencies\' in the game, Prestige (converts to Honor points at the end of each generation, of which there are three), Income (your income which converts to hard cash at the end of each round, of which there are 9), and Friend cards (which are actual connections/friends, and are the only way to marry into wealthy/famous families, and can only be received through actions, such as  marrying a woman who brings some of her social contacts with her).&#10;&#10;Prestige, Income and Friend cards can be gained and lost. You can, for example, lose some prestige by marrying someone infamous or lose some Honor points (i.e. reputation) by asking friends for money. There are also numerous actions you can take that will affect one of the three \'currencies\' detrimentally, such as bribing someone to get a title (for which you need to pay, but also in the loss of friends who felt they deserved that title, and not you), or the maintenance of a beautiful new park you have built for the people (losing you income). Finally, you can also take actions that result in the loss of some of your social contacts (friends), due to jealousy, or people simply no longer wanting to be associated with you.&#10;&#10;These currencies are carefully balanced by the male and female friend cards in the game. Generally men will give you income and possibly prestige, but will cost you a dowry/wedding costs. Women, on the other hand, will give you connections (new friends you can choose from the current socialites (cards lying open on the table) and possibly prestige, and will sometimes even earn you a dowry!&#10;&#10;The card interactions allow for multiple different paths to success, but you must choose your road strategically, planning out where you want to be headed, else you will be left behind in the dust by those with greater and more successful plans than yours.&#10;&#10;', 4, 4, 76, 67, 87, 6.15, 1979, 12, 7, 12),
+(961, 'Legacy: The Testament of Duke de Crecy', 'It is 1729 in pre-revolution France, a time when the aristocracy has all the power and the means to rule the country. As a wealthy, well-educated aristocrat, you have travelled the world and had the fortune to enjoy your life to the fullest &ndash; but you see that history is about to change course and you know that in order to stay strong, your family must prepare well. You need to find new allies. You must absorb smaller families and use their potency to strengthen your kin. You have to arrange wise marriages, nurture strong connections at court, obtain titles, build mansions, and find the right spouses for your daughters and sons...&#10;&#10;Legacy: The Testament of Duke de Crecy enables you to build a powerful dynasty in 18th century France as you step into the shoes of a French noble and compete for lasting honor. Over three generations, you &ndash; a resourceful patriarch or matriarch &ndash; will attempt to create a lasting legacy by establishing a house with ties to many different wealthy and powerful families from France and abroad (Spain, Italy, Russia and other countries).&#10;&#10;This card game offers endless possibilities. Each time you build a family, you write a unique story, bringing to life the diverse relationships between parents and their children, between cousins, uncles, aunts, nephews and nieces. Whether you are looking for the best husband for your only daughter or a suitable wife for one of your two sons, whether you are looking to add new blood to your family by marrying into foreign nobility &ndash; you will be working to make your family rise in status through prestige and wealth, new skills and abilities.&#10;&#10;In Legacy: The Testament of Duke de Crecy &ndash; known previously as Nobles of Paris and winner of Ducosim Spelontwerp in 2009 &ndash; you will find 75 spouse cards with unique traits, more than twenty secret missions, nine titles, and nine &quot;contribution to the family&quot; cards. This all culminates in a highly thematic card game that will satisfy players who enjoy exploring many different paths to victory.&#10;&#10;&#10;Legacy is a worker placement game in which you take actions to improve the standing and/or wealth of your family. You will expand your family, creating an ever-growing tableau, the family tree. You will need to balance the three \'currencies\' in the game, Prestige (converts to Honor points at the end of each generation, of which there are three), Income (your income which converts to hard cash at the end of each round, of which there are 9), and Friend cards (which are actual connections/friends, and are the only way to marry into wealthy/famous families, and can only be received through actions, such as  marrying a woman who brings some of her social contacts with her).&#10;&#10;Prestige, Income and Friend cards can be gained and lost. You can, for example, lose some prestige by marrying someone infamous or lose some Honor points (i.e. reputation) by asking friends for money. There are also numerous actions you can take that will affect one of the three \'currencies\' detrimentally, such as bribing someone to get a title (for which you need to pay, but also in the loss of friends who felt they deserved that title, and not you), or the maintenance of a beautiful new park you have built for the people (losing you income). Finally, you can also take actions that result in the loss of some of your social contacts (friends), due to jealousy, or people simply no longer wanting to be associated with you.&#10;&#10;These currencies are carefully balanced by the male and female friend cards in the game. Generally men will give you income and possibly prestige, but will cost you a dowry/wedding costs. Women, on the other hand, will give you connections (new friends you can choose from the current socialites (cards lying open on the table) and possibly prestige, and will sometimes even earn you a dowry!&#10;&#10;The card interactions allow for multiple different paths to success, but you must choose your road strategically, planning out where you want to be headed, else you will be left behind in the dust by those with greater and more successful plans than yours.&#10;&#10;', 4, 5, 76, 67, 87, 10.00, 1979, 12, 7, 12),
 (962, 'Madeira', 'Madeira is an island officially discovered early in the 15th century by Portuguese seafarers. Madeira, the Portuguese word for wood, refers to the dense forest that covered its wild, fertile landscape. This, and its strategic position far into the Atlantic Ocean made the island one of the most significant Portuguese discoveries. Madeira served as a &ldquo;laboratory&rdquo; for what would become the Portuguese Empire.&#10;&#10;Wheat plantations were the first means for survival on the island. After that, when D. Henrique decided to increase the economy of the Empire, sugar became the core business of Madeira. Once sugar started coming from other places in the world, such as Africa and Brazil, profits from sugar were no longer enough, and production of the very famous Madeira wine became the most important economic product of the island.&#10;&#10;Players try to adapt themselves to these constraints, working to find better fields for farming the right goods and for obtaining precious wood, essential for erecting new structures in the cities and for building ships. In turn, the ships are crucial for trading in foreign markets, as well as for taking part in new expeditions to discover other countries.&#10;Madeira has been established just as it was in the original administrative division of the island under 3 captaincies (Funchal, Machico, and Porto Santo), where the ultimate goal is to develop the Island, gaining the most prestige under and for the Portuguese Crown.&#10;&#10;The Crown of Portugal has a series of requests regarding expeditions, urbanization, opening trade routes, increasing wealth, and controlling the guilds on the islands. Three times during the game, the players gain prestige for fulfilling certain requests by the Crown. At two other times, the Crown requests that the islands change the focus of their agriculture due to the changes in the world.&#10;&#10;Players must carefully choose the correct timing to show their achievements. Too early and you don&rsquo;t gain as much prestige, too late and you risk someone else stealing the best opportunities. Will you have what it takes to excel in all of these endeavors?&#10;Beware, wheat may become scarce, money is never enough, the population is hungry, and the shadow of piracy looms large&hellip;.&#10;&#10;', 2, 2, 77, 71, 89, 5.96, 1995, 2, 10, 15),
 (963, 'Monikers', 'Monikers is a party game based on the public domain game Celebrity, where players take turns attempting to get their teammates to guess names by describing or imitating well-known people.&#10;&#10;In the first round, clue givers can say anything they want, except for the name itself. For the second round, clue givers can only say one word. And in the final round, clue givers can&rsquo;t say anything at all: they can only use gestures and charades.&#10;&#10;Based on the public domain game known as Celebrities.&#10;&#10;', 2, 4, 108, 100, 114, 5.23, 1955, 8, 6, 13),
 (964, 'Villa Paletti', 'An architectural rush to the skies for 2 - 4 budding architects with a good head for heights from 8 years old.&#10;&#10;In the land where the Lemons bloom, there once lived a wise old sage, whose friends called him &quot;Paletti&quot; He only had one goal in life, to finish the wonderful castle in the sky that his grandfather had begun to build many years before, but which had been left unfinished when the ducats ran out. Paletti too had little money, but instead he had a marvelous plan. Why buy new columns when he could re-use the old ones that his Grandfather had built?  All he needed to do was remove some of those holding up the first floor, of which there were far too many in any case, and rebuild them further up, so that they could support new floors,  reaching up towards the skies!&#10;&#10;&quot;Excellent, Paletti&quot; shouted his friends, and they quickly started to work.  Soon they had a marvelous building in front of them, the &quot;Villa Paletti&quot;. Nowadays, no one knows what it was caused the collapse of the Vila Paletti, perhaps a puff of wind, or a slight earth tremor, but all the experts are united on one point, that Paletti,  far ahead of his time, was the first to discover something whose full importance is only now starting to become clear to us, the Euro pallet!&#10;&#10;Re-implemented by:&#10;&#10;    Palazzo Paletti&#10;&#10;&#10;&#10;&#10;', 4, 5, 67, 61, 76, 8.49, 1973, 14, 1, 9),
@@ -1181,6 +1234,16 @@ CREATE TABLE `Users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+-- Déchargement des données de la table `Users`
+--
+
+INSERT INTO `Users` (`id_user`, `Last_Name`, `First_Name`, `email`) VALUES
+(1, 'picou', 'thomas', 'thomas.picou@efrei.net'),
+(2, 'picou', 'thomas', 'thomas.picou@efrei.net'),
+(3, 'dupontdeligones_91', 'Xavier', 'xav_ptitgrego@gmail.com'),
+(4, 'admin', 'admin', 'amine@amine.com');
+
+--
 -- Index pour les tables déchargées
 --
 
@@ -1215,8 +1278,9 @@ ALTER TABLE `Favoris`
 --
 ALTER TABLE `Game`
   ADD PRIMARY KEY (`Id_game`),
-  ADD KEY `id_publisher` (`id_publisher`),
-  ADD KEY `Id_category` (`Id_category`);
+  ADD KEY `idx_game_name` (`Name_game`(100)),
+  ADD KEY `idx_game_publisher` (`id_publisher`),
+  ADD KEY `idx_game_category` (`Id_category`);
 
 --
 -- Index pour la table `Users`
@@ -1250,7 +1314,7 @@ ALTER TABLE `Game`
 -- AUTO_INCREMENT pour la table `Users`
 --
 ALTER TABLE `Users`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Contraintes pour les tables déchargées
@@ -1277,6 +1341,205 @@ ALTER TABLE `Game`
   ADD CONSTRAINT `game_ibfk_1` FOREIGN KEY (`id_publisher`) REFERENCES `Boardgamepublisher_` (`id_publisher`),
   ADD CONSTRAINT `game_ibfk_2` FOREIGN KEY (`Id_category`) REFERENCES `Category` (`Id_category`);
 COMMIT;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` FUNCTION `GetFavoriteCount`(gameId INT) RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+  DECLARE favCount INT;
+  SELECT COUNT(*) INTO favCount
+  FROM Favoris
+  WHERE Id_game = gameId;
+  RETURN favCount;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` FUNCTION `GetUserCommentCount`(userId INT) RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+  DECLARE commentCount INT;
+  SELECT COUNT(*) INTO commentCount
+  FROM Comment
+  WHERE id_user = userId;
+  RETURN commentCount;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` FUNCTION `IsRecentGame`(gameId INT) RETURNS tinyint(1)
+    DETERMINISTIC
+BEGIN
+  DECLARE isRecent BOOLEAN;
+  DECLARE pubYear INT;
+  SELECT Year_published INTO pubYear FROM Game WHERE Id_game = gameId;
+  SET isRecent = (pubYear >= YEAR(CURDATE()) - 2); 
+  RETURN isRecent;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AddComment`(
+    IN p_Id_game INT,
+    IN p_id_user INT,
+    IN p_note INT,
+    IN p_avis VARCHAR(50),
+    IN p_date_note DATE
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+
+    INSERT INTO Comment (
+        Id_game, id_user, note, avis, date_note
+    ) VALUES (
+        p_Id_game, p_id_user, p_note, p_avis, p_date_note
+    );
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AddGame`(
+    IN p_Name_game TEXT,
+    IN p_Id_category INT,
+    IN p_id_publisher INT,
+    IN p_minplaytime INT,
+    IN p_maxplaytime INT,
+    IN p_Year_published INT,
+    IN p_minplayer INT,
+    IN p_maxplayer INT
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+
+    INSERT INTO Game (
+        Name_game, Id_category, id_publisher,
+        minplaytime, maxplaytime, Year_published,
+        minplayer, maxplayer
+    ) VALUES (
+        p_Name_game, p_Id_category, p_id_publisher,
+        p_minplaytime, p_maxplaytime, p_Year_published,
+        p_minplayer, p_maxplayer
+    );
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `RegisterUser`(
+    IN p_Last_Name VARCHAR(50),
+    IN p_First_Name VARCHAR(50),
+    IN p_email VARCHAR(50)
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+
+    INSERT INTO Users (Last_Name, First_Name, email)
+    VALUES (p_Last_Name, p_First_Name, p_email);
+
+    COMMIT;
+END$$
+DELIMITER ;
+
+
+CREATE OR REPLACE VIEW TrendingGames AS
+SELECT 
+    g.Name_game,
+    ROUND(AVG(c.note), 2) AS AverageRating,
+    COUNT(c.id_user) AS NumberOfRatings,
+    g.Id_game
+FROM Game g
+JOIN Comment c ON g.Id_game = c.Id_game
+GROUP BY g.Id_game, g.Name_game
+ORDER BY AverageRating DESC, NumberOfRatings DESC
+LIMIT 10;
+
+CREATE OR REPLACE VIEW AdminStats AS
+SELECT 
+    (SELECT COUNT(*) FROM Game) AS TotalGames,
+    (SELECT COUNT(*) FROM Users) AS TotalUsers,
+    (SELECT COUNT(*) FROM Comment) AS TotalComments,
+    (SELECT COUNT(*) FROM Favoris) AS TotalFavorites;
+
+
+CREATE OR REPLACE VIEW GameFavoritesRanking AS
+SELECT 
+    g.Id_game,
+    g.Name_game,
+    COUNT(f.id_user) AS FavoriteCount,
+    RANK() OVER (ORDER BY COUNT(f.id_user) DESC) AS RankPosition
+FROM Game g
+LEFT JOIN Favoris f ON g.Id_game = f.Id_game
+GROUP BY g.Id_game, g.Name_game;
+
+-- Créer l'utilisateur admin avec un mot de passe
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin_password';
+
+-- Créer l'utilisateur user avec un mot de passe
+CREATE USER 'user'@'localhost' IDENTIFIED BY 'user_password';
+
+
+-- Vue AdminStats
+GRANT SELECT ON AdminStats TO 'admin'@'localhost';
+
+-- Accès complet aux tables
+GRANT ALL PRIVILEGES ON Boardgamepublisher_ TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON Category TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON Comment TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON Favoris TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON Game TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON Users TO 'admin'@'localhost';
+
+-- Accès aux vues
+GRANT SELECT ON TrendingGames TO 'admin'@'localhost';
+GRANT SELECT ON GameFavoritesRanking TO 'admin'@'localhost';
+
+-- Fonctions
+GRANT EXECUTE ON FUNCTION GetFavoriteCount TO 'admin'@'localhost';
+GRANT EXECUTE ON FUNCTION IsRecentGame TO 'admin'@'localhost';
+GRANT EXECUTE ON FUNCTION GetUserCommentCount TO 'admin'@'localhost';
+
+-- Procédures stockées
+GRANT EXECUTE ON PROCEDURE AddGame TO 'admin'@'localhost';
+GRANT EXECUTE ON PROCEDURE AddComment TO 'admin'@'localhost';
+GRANT EXECUTE ON PROCEDURE RegisterUser TO 'admin'@'localhost';
+
+-- Accès aux tables
+GRANT SELECT ON Boardgamepublisher_ TO 'user'@'localhost';
+GRANT SELECT ON Category TO 'user'@'localhost';
+
+GRANT SELECT, INSERT ON Comment TO 'user'@'localhost';
+GRANT SELECT, INSERT, DELETE, UPDATE ON Favoris TO 'user'@'localhost';
+
+-- Vues accessibles
+GRANT SELECT ON TrendingGames TO 'user'@'localhost';
+GRANT SELECT ON GameFavoritesRanking TO 'user'@'localhost';
+
+-- Fonctions nécessaires selon les accès
+GRANT EXECUTE ON FUNCTION GetFavoriteCount TO 'user'@'localhost';
+GRANT EXECUTE ON FUNCTION IsRecentGame TO 'user'@'localhost';
+GRANT EXECUTE ON FUNCTION GetUserCommentCount TO 'user'@'localhost';
+
+-- Procédures autorisées selon les accès
+GRANT EXECUTE ON PROCEDURE AddComment TO 'user'@'localhost';
+
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

@@ -80,7 +80,7 @@ const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
    database: 'bdda-project',
-   password: '_Th40!Do61',
+   password: '',
 });
 db.connect((err) => {
    if (err) console.error('Database connection error:', err);

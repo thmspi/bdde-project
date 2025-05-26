@@ -24,8 +24,10 @@ router.post(
 
 router.post('/signup', (req, res) => {
    const { firstName, lastName, email, password } = req.body;
-   const sql = 'INSERT INTO Users (First_Name, Last_Name, email) VALUES (?, ?, ?)';
-   req.db.query(sql, [firstName, lastName, email], (err, result) => {
+
+   // Call the stored procedure
+   const sql = 'CALL RegisterUser(?, ?, ?)';
+   req.db.query(sql, [lastName, firstName, email], (err, result) => {
       if (err) {
          console.error(err);
          return res.sendStatus(500);
@@ -34,12 +36,24 @@ router.post('/signup', (req, res) => {
       // Assign role based on firstName
       const role = (firstName.toLowerCase() === 'admin') ? 'admin' : 'user';
 
-      req.login({ id: result.insertId, email, role }, (err) => {
-         if (err) return res.sendStatus(500);
-         res.redirect('/');
+      // Get the inserted user ID
+      const getIdSQL = 'SELECT id_user FROM Users WHERE email = ?';
+      req.db.query(getIdSQL, [email], (err, results) => {
+         if (err || results.length === 0) {
+            console.error(err || 'User not found after insert');
+            return res.sendStatus(500);
+         }
+
+         const userId = results[0].id_user;
+
+         req.login({ id: userId, email, role }, (err) => {
+            if (err) return res.sendStatus(500);
+            res.redirect('/');
+         });
       });
    });
 });
+
 
 
 // Logout route – version compatible Passport >= 0.6
