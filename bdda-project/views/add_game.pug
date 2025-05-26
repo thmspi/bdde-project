@@ -1,0 +1,43 @@
+extends layout
+
+block content
+  h1 Ajouter un nouveau jeu
+
+  if error
+    p(style="color: red") #{error}
+
+  form(action="/games/add" method="POST")
+    div
+      label(for="Name_game") Nom du jeu :
+      input(type="text" name="Name_game" id="Name_game" required)
+
+    div
+      label(for="Id_category") Catégorie (ID) :
+      input(type="number" name="Id_category" id="Id_category" min="1" required)
+
+    div
+      label(for="id_publisher") Éditeur (ID) :
+      input(type="number" name="id_publisher" id="id_publisher" min="1" required)
+
+    div
+      label(for="minplaytime") Durée minimum (minutes) :
+      input(type="number" name="minplaytime" id="minplaytime" min="1" required)
+
+    div
+      label(for="maxplaytime") Durée maximum (minutes) :
+      input(type="number" name="maxplaytime" id="maxplaytime" min="1" required)
+
+    div
+      label(for="Year_published") Année de publication :
+      input(type="number" name="Year_published" id="Year_published" min="1900" max="2100" required)
+
+    div
+      label(for="minplayer") Nombre minimum de joueurs :
+      input(type="number" name="minplayer" id="minplayer" min="1" required)
+
+    div
+      label(for="maxplayer") Nombre maximum de joueurs :
+      input(type="number" name="maxplayer" id="maxplayer" min="1" required)
+
+    div
+      button(type="submit") Ajouter le jeu
