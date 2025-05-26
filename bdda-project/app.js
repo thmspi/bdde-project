@@ -39,11 +39,15 @@ passport.use(
          if (results.length === 0) return done(null, false, { message: 'Utilisateur introuvable' });
 
          const user = results[0];
+         var role_user = 'user';
+         if (user.First_Name.substr(0, 5) == 'admin') {
+            role_user = 'admin';
+         }
 
          return done(null, {
             id: user.id_user,
             email: user.email,
-            role: user.role || 'user',
+            role: user.role || role_user,
          });
       });
    })
@@ -59,10 +63,14 @@ passport.deserializeUser((id, done) => {
       if (results.length === 0) return done(null, false);
 
       const user = results[0];
+      var role_user = 'user';
+      if (user.First_Name.substr(0, 5) == 'admin') {
+         role_user = 'admin';
+      }
       done(null, {
          id: user.id_user,
          email: user.email,
-         role: user.role || 'user',
+         role: user.role || role_user,
       });
    });
 });
@@ -70,9 +78,9 @@ passport.deserializeUser((id, done) => {
 // Database connection (adjust with your own credentials)
 const db = mysql.createConnection({
    host: 'localhost',
-   user: 'jean',
+   user: 'root',
    database: 'BDDA-project',
-   password: 'jeanpass',
+   password: '_Th40!Do61',
 });
 db.connect((err) => {
    if (err) console.error('Database connection error:', err);
