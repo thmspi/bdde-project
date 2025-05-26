@@ -70,9 +70,9 @@ passport.deserializeUser((id, done) => {
 // Database connection (adjust with your own credentials)
 const db = mysql.createConnection({
    host: 'localhost',
-   user: 'root',
+   user: 'jean',
    database: 'BDDA-project',
-   password: '',
+   password: 'jeanpass',
 });
 db.connect((err) => {
    if (err) console.error('Database connection error:', err);

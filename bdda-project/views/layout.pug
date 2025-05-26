@@ -18,7 +18,7 @@ html
             a(href='/account') Account
           .link 
             if user
-              a(href='/account/logout') Logout
+              a(href='/account/logout', onclick='return confirmLogout()') Logout
             else
               a(href='/account/login') Login
           label.icon.searchicon(for="toggle")
@@ -28,4 +28,10 @@ html
             input(type='text', name='search', placeholder='Search for board games...')
             button(type='submit' style='display:none') Search
       label.icon.searchicon1(for="toggle")
+
+      script.
+        function confirmLogout() {
+          return confirm("Êtes-vous sûr de vouloir vous déconnecter ?");
+        }
+
     block content
