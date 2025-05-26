@@ -48,13 +48,11 @@ router.post('/signup', (req, res) => {
          req.login({ id: result.insertId, email, role: 'user' }, (err) => {
             if (err) return res.sendStatus(500);
             res.redirect('/');
-            req.user.id = id;
          });
       });
    }
 });
 
-// Logout route
 // Logout route – version compatible Passport >= 0.6
 router.get('/logout', (req, res, next) => {
    req.logout((err) => {
@@ -92,9 +90,6 @@ router.get('/', (req, res) => {
    });
 });
 
-
-
-
 router.post('/update', (req, res) => {
    if (!req.isAuthenticated()) return res.redirect('/account/login');
    const { firstName, lastName, email } = req.body;
@@ -108,7 +103,5 @@ router.post('/update', (req, res) => {
       res.redirect('/account');
    });
 });
-
-
 
 module.exports = router;
