@@ -1,12 +1,3 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Hôte : localhost
--- Généré le : lun. 26 mai 2025 à 22:04
--- Version du serveur : 10.4.28-MariaDB
--- Version de PHP : 8.0.28
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -93,14 +84,6 @@ CREATE TABLE `Comment` (
   `avis` varchar(50) DEFAULT NULL,
   `date_note` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Déchargement des données de la table `Comment`
---
-
-INSERT INTO `Comment` (`Id_game`, `id_user`, `note`, `avis`, `date_note`) VALUES
-(961, 3, 10, 'wowo', '2025-05-26');
-
 --
 -- Déclencheurs `Comment`
 --
@@ -116,6 +99,7 @@ CREATE TRIGGER `trg_update_average_note` AFTER INSERT ON `Comment` FOR EACH ROW 
 END
 $$
 DELIMITER ;
+
 DELIMITER $$
 CREATE TRIGGER `trg_validate_rating_range` BEFORE INSERT ON `Comment` FOR EACH ROW BEGIN
   IF NEW.note < 1 OR NEW.note > 10 THEN
@@ -137,12 +121,6 @@ CREATE TABLE `Favoris` (
   `id_user` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Déchargement des données de la table `Favoris`
---
-
-INSERT INTO `Favoris` (`Id_game`, `id_user`) VALUES
-(961, 3);
 
 --
 -- Déclencheurs `Favoris`
@@ -1234,16 +1212,6 @@ CREATE TABLE `Users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Déchargement des données de la table `Users`
---
-
-INSERT INTO `Users` (`id_user`, `Last_Name`, `First_Name`, `email`) VALUES
-(1, 'picou', 'thomas', 'thomas.picou@efrei.net'),
-(2, 'picou', 'thomas', 'thomas.picou@efrei.net'),
-(3, 'dupontdeligones_91', 'Xavier', 'xav_ptitgrego@gmail.com'),
-(4, 'admin', 'admin', 'amine@amine.com');
-
---
 -- Index pour les tables déchargées
 --
 
@@ -1490,56 +1458,70 @@ LEFT JOIN Favoris f ON g.Id_game = f.Id_game
 GROUP BY g.Id_game, g.Name_game;
 
 -- Créer l'utilisateur admin avec un mot de passe
-CREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin_password';
+CREATE OR REPLACE USER 'admin'@'localhost' IDENTIFIED BY 'admin_password';
 
 -- Créer l'utilisateur user avec un mot de passe
-CREATE USER 'user'@'localhost' IDENTIFIED BY 'user_password';
+CREATE OR REPLACE USER 'user'@'localhost' IDENTIFIED BY 'user_password';
 
+-- Create the admin and user role
+CREATE OR REPLACE ROLE 'admin_role';
+CREATE OR REPLACE ROLE 'user_role';
 
 -- Vue AdminStats
 GRANT SELECT ON AdminStats TO 'admin'@'localhost';
 
 -- Accès complet aux tables
-GRANT ALL PRIVILEGES ON Boardgamepublisher_ TO 'admin'@'localhost';
-GRANT ALL PRIVILEGES ON Category TO 'admin'@'localhost';
-GRANT ALL PRIVILEGES ON Comment TO 'admin'@'localhost';
-GRANT ALL PRIVILEGES ON Favoris TO 'admin'@'localhost';
-GRANT ALL PRIVILEGES ON Game TO 'admin'@'localhost';
-GRANT ALL PRIVILEGES ON Users TO 'admin'@'localhost';
+GRANT ALL PRIVILEGES ON Boardgamepublisher_ TO 'admin_role';
+GRANT ALL PRIVILEGES ON Category TO 'admin_role';
+GRANT ALL PRIVILEGES ON Comment TO 'admin_role';
+GRANT ALL PRIVILEGES ON Favoris TO 'admin_role';
+GRANT ALL PRIVILEGES ON Game TO 'admin_role';
+GRANT ALL PRIVILEGES ON Users TO 'admin_role';
 
 -- Accès aux vues
-GRANT SELECT ON TrendingGames TO 'admin'@'localhost';
-GRANT SELECT ON GameFavoritesRanking TO 'admin'@'localhost';
+GRANT SELECT ON TrendingGames TO 'admin_role';
+GRANT SELECT ON GameFavoritesRanking TO 'admin_role';
 
 -- Fonctions
-GRANT EXECUTE ON FUNCTION GetFavoriteCount TO 'admin'@'localhost';
-GRANT EXECUTE ON FUNCTION IsRecentGame TO 'admin'@'localhost';
-GRANT EXECUTE ON FUNCTION GetUserCommentCount TO 'admin'@'localhost';
+GRANT EXECUTE ON FUNCTION GetFavoriteCount TO 'admin_role';
+GRANT EXECUTE ON FUNCTION IsRecentGame TO 'admin_role';
+GRANT EXECUTE ON FUNCTION GetUserCommentCount TO 'admin_role';
 
 -- Procédures stockées
-GRANT EXECUTE ON PROCEDURE AddGame TO 'admin'@'localhost';
-GRANT EXECUTE ON PROCEDURE AddComment TO 'admin'@'localhost';
-GRANT EXECUTE ON PROCEDURE RegisterUser TO 'admin'@'localhost';
+GRANT EXECUTE ON PROCEDURE AddGame TO 'admin_role';
+GRANT EXECUTE ON PROCEDURE AddComment TO 'admin_role';
+GRANT EXECUTE ON PROCEDURE RegisterUser TO 'admin_role';
 
 -- Accès aux tables
-GRANT SELECT ON Boardgamepublisher_ TO 'user'@'localhost';
-GRANT SELECT ON Category TO 'user'@'localhost';
+GRANT SELECT ON Boardgamepublisher_ TO 'user_role';
+GRANT SELECT ON Category TO 'user_role';
 
-GRANT SELECT, INSERT ON Comment TO 'user'@'localhost';
-GRANT SELECT, INSERT, DELETE, UPDATE ON Favoris TO 'user'@'localhost';
+-- Accès aux commentaires et favoris
+GRANT SELECT, INSERT ON Comment TO 'user_role';
+GRANT SELECT, INSERT, DELETE, UPDATE ON Favoris TO 'user_role';
 
 -- Vues accessibles
-GRANT SELECT ON TrendingGames TO 'user'@'localhost';
-GRANT SELECT ON GameFavoritesRanking TO 'user'@'localhost';
+GRANT SELECT ON TrendingGames TO 'user_role';
+GRANT SELECT ON GameFavoritesRanking TO 'user_role';
 
 -- Fonctions nécessaires selon les accès
-GRANT EXECUTE ON FUNCTION GetFavoriteCount TO 'user'@'localhost';
-GRANT EXECUTE ON FUNCTION IsRecentGame TO 'user'@'localhost';
-GRANT EXECUTE ON FUNCTION GetUserCommentCount TO 'user'@'localhost';
+GRANT EXECUTE ON FUNCTION GetFavoriteCount TO 'user_role';
+GRANT EXECUTE ON FUNCTION IsRecentGame TO 'user_role';
+GRANT EXECUTE ON FUNCTION GetUserCommentCount TO 'user_role';
 
 -- Procédures autorisées selon les accès
-GRANT EXECUTE ON PROCEDURE AddComment TO 'user'@'localhost';
+GRANT EXECUTE ON PROCEDURE AddComment TO 'user_role';
 
+-- Admin gets the admin role and User gets the user role
+GRANT 'admin_role' TO 'admin'@'localhost';
+GRANT 'user_role' TO 'user'@'localhost';
+
+
+-- Activer le rôle pour un utilisateur (par exemple, admin)
+SET ROLE 'admin_role';
+
+-- Activer le rôle pour un autre utilisateur (par exemple, user)
+SET ROLE 'user_role';
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
